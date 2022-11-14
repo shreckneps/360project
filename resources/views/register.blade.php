@@ -1,11 +1,15 @@
-<!DOCTYPE html>
+@extends('main')
 
-<html>
-<head>
-    <title>Register</title>
-</head>
+@section('title', 'Register')
 
-<body>
+@section('navLinks')
+    
+    @include('pagedef.loggedOut')
+
+@endsection
+
+@section('mainContent')
+
     This is the registration form for new users. 
     Existing users should instead <a href="login">Login</a> to their account.
     <form method="post">
@@ -19,10 +23,9 @@
         <td> <input required type="password" id="password_conf" name="password_conf"> </td> </tr>
         <tr> 
             <td> <button name="register" value="vendor" type="submit">Register as Vendor</button> </td> 
-            <td> <button name="register" value="client" type="submit">Register as Client</button> </td> 
+            <td> <button name="register" value="customer" type="submit">Register as Customer</button> </td> 
         </tr>
         </table>
     </form>
+@endsection
 
-</body>
-</html>

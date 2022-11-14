@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Accounts;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -27,61 +28,35 @@ class Home extends Controller {
         }
     }
 
-    public function login(Request $request) {
-        if(!is_null(Auth::user())) {
+    public function dynamic(Request $request) {
+        $user = Auth::user();
+        if(is_null($user)) {
             return redirect('/');
         }
-        if ($request->has('login')) {
-            if (Auth::attempt(['username' => $request->username, 'password' => $request->password])) {
-                $request->session()->regenerate();
-                return redirect('/');
-            } else {
-                echo 'Login failed: incorrect username/password. <br>';
-            }
+        if($request->has('num')) {
+            return view('dynamicRecursive', ['num' => $request->num]);
+        } else {
+            return view('dynamic', ['user' => $user]);
         }
-        return view('login');
     }
 
-    public function register(Request $request) {
-        if(!is_null(Auth::user())) {
+    public function addProduct(Request $request) {
+        $user = Auth::user();
+        if(is_null($user)) {
             return redirect('/');
         }
-        if ($request->has('register')) {
-            if($request->password == $request->password_conf) {
-                $existing = User::where('username', $request->username)->count();
-                if($existing == 0) {
-                    $new = new User;
-                    $new->username = $request->username;
-                    $new->password = Hash::make($request->password);
-                    $new->type = $request->register;
-                    $new->save();
-
-                    Auth::attempt(['username' => $request->username, 'password' => $request->password]);
-                    $request->session()->regenerate();
-                    return redirect('/');
-                } else {
-                    echo 'Username already taken. <br>';
-                }
-            } else {
-                echo 'Passwords must match. <br>';
-            }
-        }
-        return view('register');
+        return view('addProduct', ['user' => $user]); 
     }
 
     public function productlist(Request $request) {
         echo 'List of all products';
-       
         if ($request->has('productlist')) {
             $productlist = DB::table('products')-> get();
-          return view('productlist', ['productlist'=>$productlist]);
-    
-        }else{
+            return view('productlist', ['productlist'=>$productlist]);
+        } else {
             echo'other';
         }
-    
-            
-        
-    }     
+    }
+
 }
 
