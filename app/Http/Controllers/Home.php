@@ -59,13 +59,13 @@ class Home extends Controller {
                 if($user->type == 'vendor'){
                   
                     $productlist = DB::table('sells')-> get();
-                    return view('productlist', ['productlist'=>$productlist],['user' => $user],);
+                    return view('productlist','user', ['productlist'=>$productlist],['user' => $user]);
                     
                 }
                 else{
                    echo('UserClient');
                     $productlist = DB::table('products')-> get();
-                    return view('productlist', ['productlist'=>$productlist]);
+                    return view('productlist','user', ['productlist'=>$productlist],['user' => $user]);
                 }
  
             }elseif($request->has('ownslist')){
