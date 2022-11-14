@@ -23,9 +23,7 @@ class Home extends Controller {
         }
         return view('dashboard', ['user' => $user]);
         
-        if($request->has('productlist')){
-            return view('productlist');
-        }
+       
     }
 
     public function dynamic(Request $request) {
@@ -52,26 +50,36 @@ class Home extends Controller {
  
         $user = Auth::user();
         if(is_null($user)) {
-           # return redirect('/');
+            echo('noUser');
+             return redirect('/');
         }else{
-            if ($request->has('productlist')) {
+            echo('hasUser');
+            if ($request->has('productlist')) {              
 
                 if($user->type == 'vendor'){
                   
                     $productlist = DB::table('sells')-> get();
-                    return view('productlist', ['productlist'=>$productlist],['user' => $user]);
+                    return view('productlist', ['productlist'=>$productlist],['user' => $user],);
                     
                 }
                 else{
-                   
+                   echo('UserClient');
                     $productlist = DB::table('products')-> get();
-                    return view('productlist', ['productlist'=>$productlist],['user' => $user]);
+                    return view('productlist', ['productlist'=>$productlist]);
                 }
  
+            }elseif($request->has('ownslist')){
+                if($user->type == 'customer'){
+                    $ownslist = DB::table('owns')-> get();
+                    $productlist = DB::table('products')-> get();
+                    return view('productlist','ownslist','user','request', ['productlist'=>$productlist],['ownslist'=> $ownslist],['user'=> $user],['request' => $request]);
+                }
             }
         
     }
     }
+
+    
 
 }
 

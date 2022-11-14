@@ -1,15 +1,4 @@
 
-@extends('main')
-
-@section('title', 'Product List')
-
-@section('navLinks')
-    
-    @include('pagedef.loggedOut')
-
-@endsection
-
-@section('mainContent')
 <!DOCTYPE html>
 
 <html>
@@ -25,8 +14,8 @@
 
         @foreach ($productlist as $products)
             <tr>
-                while($user->id == $productsell->vendor_id){
-                    <td> {{ $products->id}} </td>
+                while($user->id == $products->vendor_id){
+                        <td> {{ $products->id}} </td>
                         <td> {{ $products->name}} </td>
                         <td> {{ $products->type }} </td>
                         <td> {{ $products->value }} </td>
@@ -34,16 +23,38 @@
         @endforeach
                 }
     @else
+
+        @if($request->has('ownslist'))   
+
+            @foreach($productlist as $products)
+                @foreach($ownslist as $owns)
+                @if ($user->id == $owns->customer_id)
+                <tr>
+                      while($products->id == $owns->product_id){
+                        <td> {{ $owns->id}} </td>
+                        <td> {{ $products->name}} </td>
+                        <td> {{ $products->type }} </td>
+                        
+                    }
+                </tr>
+                    
+                @endif
+                
+                @endforeach    
+            @endforeach
   
-    @foreach ($productlist as $products)
+        @else
+        @foreach ($productlist as $products)
             <tr>
+                <td> {{ $products->id}} </td>
                 <td> {{ $products->name}} </td>
                 <td> {{ $products->type }} </td>
                 <td> {{ $products->value }} </td>
             </tr>
 
-    @endforeach
-
+        @endforeach
+        @endif
+    @endif
 
 </body>
 </html>
