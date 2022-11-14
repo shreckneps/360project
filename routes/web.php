@@ -17,3 +17,4 @@ use App\Http\Controllers\Home;
 Route::any('/', [Home::class, 'dashboard']);
 Route::any('/login', [Home::class, 'login']);
 Route::any('/register', [Home::class, 'register']);
+Route::any('/productlist', [Home::class, 'productlist']);

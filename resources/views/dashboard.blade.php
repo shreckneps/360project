@@ -16,6 +16,7 @@
     <form method="post">
         @csrf
         <button name="logout" type="submit">Logout</button>
+        <button name="productlist" type="submit">List Products</button>
     </form>
 </body>
 </html>

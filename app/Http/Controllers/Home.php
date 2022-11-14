@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 
+
 class Home extends Controller {
 
     public function dashboard(Request $request) {
@@ -20,6 +21,10 @@ class Home extends Controller {
             return view('home');
         }
         return view('dashboard', ['user' => $user]);
+        
+        if($request->has('productlist')){
+            return view('productlist');
+        }
     }
 
     public function login(Request $request) {
@@ -63,5 +68,20 @@ class Home extends Controller {
         }
         return view('register');
     }
+
+    public function productlist(Request $request) {
+        echo 'List of all products';
+       
+        if ($request->has('productlist')) {
+            $productlist = DB::table('products')-> get();
+          return view('productlist', ['productlist'=>$productlist]);
+    
+        }else{
+            echo'other';
+        }
+    
+            
+        
+    }     
 }
 
