@@ -1,3 +1,15 @@
+
+@extends('main')
+
+@section('title', 'Product List')
+
+@section('navLinks')
+    
+    @include('pagedef.loggedOut')
+
+@endsection
+
+@section('mainContent')
 <!DOCTYPE html>
 
 <html>
@@ -8,8 +20,31 @@
 
 <body>
     This is list of products.
+
+    @if ($user->type == 'vendor')
+
+        @foreach ($productlist as $products)
+            <tr>
+                while($user->id == $productsell->vendor_id){
+                    <td> {{ $products->id}} </td>
+                        <td> {{ $products->name}} </td>
+                        <td> {{ $products->type }} </td>
+                        <td> {{ $products->value }} </td>
+            </tr>
+        @endforeach
+                }
+    @else
+  
     @foreach ($productlist as $products)
-    <li>{{$products->name, $products->type}} </li>
+            <tr>
+                <td> {{ $products->name}} </td>
+                <td> {{ $products->type }} </td>
+                <td> {{ $products->value }} </td>
+            </tr>
+
     @endforeach
+
+
 </body>
 </html>
+@endsection

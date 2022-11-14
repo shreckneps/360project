@@ -7,7 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
-
+use Illuminate\Support\Facades\DB;
 
 class Home extends Controller {
 
@@ -49,13 +49,28 @@ class Home extends Controller {
     }
 
     public function productlist(Request $request) {
-        echo 'List of all products';
-        if ($request->has('productlist')) {
-            $productlist = DB::table('products')-> get();
-            return view('productlist', ['productlist'=>$productlist]);
-        } else {
-            echo'other';
-        }
+ 
+        $user = Auth::user();
+        if(is_null($user)) {
+           # return redirect('/');
+        }else{
+            if ($request->has('productlist')) {
+
+                if($user == 'vendor'){
+                  
+                    $productlist = DB::table('sells')-> get();
+                    return view('productlist', ['productlist'=>$productlist],['user' => $user]);
+                    
+                }
+                else{
+                   
+                    $productlist = DB::table('products')-> get();
+                    return view('productlist', ['productlist'=>$productlist],['user' => $user]);
+                }
+ 
+            }
+        
+    }
     }
 
 }
