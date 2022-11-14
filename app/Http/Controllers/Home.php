@@ -47,13 +47,12 @@ class Home extends Controller {
     }
 
     public function productlist(Request $request) {
- 
         $user = Auth::user();
         if(is_null($user)) {
-            echo('noUser');
+           
              return redirect('/');
         }else{
-            echo('hasUser');
+           
             if ($request->has('productlist')) {              
 
                 if($user->type == 'vendor'){
@@ -63,12 +62,14 @@ class Home extends Controller {
                     
                 }
                 else{
-                   echo('UserClient');
+              
                     $productlist = DB::table('products')-> get();
                     return view('productlist','user', ['productlist'=>$productlist],['user' => $user]);
                 }
  
+                #not sure if I can even do this? Need a way to tell if customer wants to list owns or products
             }elseif($request->has('ownslist')){
+
                 if($user->type == 'customer'){
                     $ownslist = DB::table('owns')-> get();
                     $productlist = DB::table('products')-> get();

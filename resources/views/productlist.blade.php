@@ -1,14 +1,22 @@
 
-<!DOCTYPE html>
+@extends('main')
 
-<html>
-    <h1>Products</h1>
-<head>
-    <title>Product List</title>
-</head>
+@section('title', 'Product List')
 
-<body>
-    This is list of products.
+@section('navLinks')
+    
+    @include('pagedef.loggedOut')
+
+@endsection
+
+@section('mainContent')
+
+this is a list. Why wont this print?
+
+
+<table>
+
+   OR this damnit. 
 
     @if ($user->type == 'vendor')
 
@@ -19,11 +27,15 @@
                         <td> {{ $products->name}} </td>
                         <td> {{ $products->type }} </td>
                         <td> {{ $products->value }} </td>
+                        <br>
             </tr>
         @endforeach
                 }
     @else
-
+    <tr> 
+            <td> <button name="ownslist" value="ownslist" type="submit">List Owned Products</button> </td> 
+            <td> <button name="productlist" value="productlist" type="submit">List All Products</button> </td> 
+        </tr>
         @if($request->has('ownslist'))   
 
             @foreach($productlist as $products)
@@ -34,7 +46,7 @@
                         <td> {{ $owns->id}} </td>
                         <td> {{ $products->name}} </td>
                         <td> {{ $products->type }} </td>
-                        
+                        <br>
                     }
                 </tr>
                     
@@ -44,18 +56,19 @@
             @endforeach
   
         @else
+        
         @foreach ($productlist as $products)
             <tr>
                 <td> {{ $products->id}} </td>
                 <td> {{ $products->name}} </td>
                 <td> {{ $products->type }} </td>
                 <td> {{ $products->value }} </td>
+                <br>
             </tr>
 
         @endforeach
         @endif
     @endif
+    @endsection
 
-</body>
-</html>
-@endsection
+    </table>
