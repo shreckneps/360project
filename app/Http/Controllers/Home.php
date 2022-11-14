@@ -56,7 +56,7 @@ class Home extends Controller {
         }else{
             if ($request->has('productlist')) {
 
-                if($user == 'vendor'){
+                if($user->type == 'vendor'){
                   
                     $productlist = DB::table('sells')-> get();
                     return view('productlist', ['productlist'=>$productlist],['user' => $user]);
