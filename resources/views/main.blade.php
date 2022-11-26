@@ -6,6 +6,7 @@
         //url("/") => "Your Listings",
         url("/add") => "Add Listing",
         url("/dynamic") => "Dynamic",
+        url("/productlist") => "List Products"
     );
 @endphp
 

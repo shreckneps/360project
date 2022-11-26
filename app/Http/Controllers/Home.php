@@ -87,35 +87,59 @@ class Home extends Controller {
     }
 
     public function productlist(Request $request) {
- 
         $user = Auth::user();
         if(is_null($user)) {
-            echo('noUser');
+           
              return redirect('/');
         }else{
-            echo('hasUser');
-            if ($request->has('productlist')) {              
+
+        if($user->type == 'customer'){
+
+           $productlist = DB::table('products')-> get();
+           return view('productlist', ['productlist'=>$productlist],['user' => $user]);
+        }else
+        echo('vendor');
+            $selllist = DB::table('sells')-> get();
+            $productlist = DB::table('products')-> get();
+           
+           /* while($selllist->product_id == $productlist->id){
+
+            }
+
+            */
+            //just lists all products right now even for vendor
+            return view('productlist', ['productlist'=>$productlist],['user' => $user]);
+            
+           
+           ;
+           
+
+            
+           /*
+           if ($request->has('productlist')) {              
 
                 if($user->type == 'vendor'){
                   
                     $productlist = DB::table('sells')-> get();
-                    return view('productlist','user', ['productlist'=>$productlist],['user' => $user]);
+                    return view('productlist', ['productlist'=>$productlist],['user' => $user]);
                     
                 }
                 else{
-                   echo('UserClient');
+                    echo('hasuser2');
                     $productlist = DB::table('products')-> get();
-                    return view('productlist','user', ['productlist'=>$productlist],['user' => $user]);
+                    return view('productlist', ['productlist'=>$productlist],['user' => $user]);
                 }
  
+                #not sure if I can even do this? Need a way to tell if customer wants to list owns or products
             }elseif($request->has('ownslist')){
+
                 if($user->type == 'customer'){
                     $ownslist = DB::table('owns')-> get();
                     $productlist = DB::table('products')-> get();
-                    return view('productlist','ownslist','user','request', ['productlist'=>$productlist],['ownslist'=> $ownslist],['user'=> $user],['request' => $request]);
+                   // return view('productlist','ownslist','user','request', ['productlist'=>$productlist],['ownslist'=> $ownslist],['user'=> $user],['request' => $request]);
                 }
             }
-        
+*/        
     }
     }
 

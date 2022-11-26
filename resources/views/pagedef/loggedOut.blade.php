@@ -4,7 +4,7 @@
         url('/') => 'Dashboard',
         url('/login') => 'Log In',
         url('/register') => 'Register',
-        url('/productlist') => 'Product List'
+       
     );
 @endphp
 
