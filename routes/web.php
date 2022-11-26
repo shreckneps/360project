@@ -23,6 +23,7 @@ Route::any('/productlist', [Home::class, 'productlist']);
 Route::any('/add', [Home::class, 'addProduct']);
 Route::any('/ajax/addProduct', [Ajax::class, 'addProduct']);
 Route::any('/dynamic', [Home::class, 'dynamic']);
+Route::any('/doMyList', [Home::class, 'showListings']);
 Route::any('/ajax/serialize', [Ajax::class, 'listify']);
 Route::any('/ajax/form/atr', [Ajax::class, 'getFormAtr']);
 Route::any('/ajax/form/ftr', [Ajax::class, 'getFormFtr']);
