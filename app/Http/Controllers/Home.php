@@ -60,30 +60,39 @@ class Home extends Controller {
         }
 
         if($user->type == 'vendor') {
-
-        } else {
-            $owns = Own::where('customer_id', $user->id);
-            echo '<hr>';
-            var_dump($owns->pluck('product_id'));
-            echo '<hr>';
-            for($i = 0; $i < 100; $i++) {
-                echo $i . ': ' . $owns->pluck('product_id')->contains($i) . '<br>';
+            $sells = Sell::where('vendor_id', $user->id)->get();
+            $results = Product::all()->filter(function ($prod, $index) use ($sells) {
+                return $sells->pluck('product_id')->contains($prod->id);
+            });
+            foreach($results as $result) {
+                $result->price = $sells->firstWhere('product_id', $result->id)->price;
             }
-            echo '<hr>';
-            $var = 1;
+        } else {
+            $owns = Own::where('customer_id', $user->id)->get();
             $results = Product::all()->filter(function ($prod, $index) use ($owns) {
                 return $owns->pluck('product_id')->contains($prod->id);
             });
-
         }
 
-        foreach($results as $index => $listing) {
-            echo $index . ': ' . $listing->name . ' ';
-            echo $listing->type . '<br>';
-            echo '<hr>';
+        return view('listWrapper', ['products' => $results, 'user' => $user, 'deletes' => true]);
+    }
+
+    public function exactSearchPage(Request $request) {
+        $user = Auth::user();
+        if(is_null($user)) {
+            return redirect('/');
         }
 
-        //return view('listWrapper', ['productList' => $results, 'user' => $user]);
+        return view('exactSearch', ['user' => $user]);
+    }
+
+    public function rankedSearchPage(Request $request) {
+        $user = Auth::user();
+        if(is_null($user)) {
+            return redirect('/');
+        }
+
+        return view('rankedSearch', ['user' => $user]);
     }
 
     public function productlist(Request $request) {

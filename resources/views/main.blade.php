@@ -3,11 +3,13 @@
 @php 
     $defaultPages = array(
         url("/") => "Dashboard",
-        //url("/") => "Your Listings",
-        url("/add") => "Add Listing",
-        url("/dynamic") => "Dynamic",
-        url("/productlist") => "List Products"
+        url("/listings") => "Your Listings",
+        url("/add") => "Add Listing"
     );
+    if(isset($user) && $user->type == 'customer') {
+        $defaultPages[url("/exactSearch")] = "Exact Search";
+        $defaultPages[url("/rankedSearch")] = "Ranked Search";
+    }
 @endphp
 
 

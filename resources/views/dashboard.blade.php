@@ -6,14 +6,14 @@
 
     Username: {{ $user->username }} <br>
     @if ($user->type == 'vendor')
-        You are a vendor. In the future, you'll be able to list the products and services you offer from this page.
+        You are a vendor. You can review your products for sale, or list more products for sale.
     @else
-        You are a client. In the future, you'll be able to list your needs for products and services from this page.
+        You are a customer. You can review your owned products, add more products to your owned list, or search for products being sold via two different methods.
     @endif
 
     <form method="post">
         @csrf
-        <button class="btn" name="logout" type="submit">Logout</button>
+        <button class="btn btn-primary" name="logout" type="submit">Logout</button>
     
     </form>
 

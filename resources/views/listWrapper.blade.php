@@ -1,9 +1,9 @@
 @extends('main')
 
-@section('title', {{ $title }})
+@section('title', 'Your Listings')
 
 @section('mainContent')
 
-    @include('productlist')
+    @include('list')
 
 @endsection
