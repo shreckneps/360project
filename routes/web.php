@@ -29,8 +29,10 @@ Route::any('/dynamic', [Home::class, 'dynamic']);
 Route::any('/listings', [Home::class, 'showListings']);
 Route::any('/exactSearch', [Home::class, 'exactSearchPage']);
 Route::any('/rankedSearch', [Home::class, 'rankedSearchPage']);
+Route::any('/needSearch', [Home::class, 'needSearchPage']);
 Route::any('/ajax/exactSearch', [Ajax::class, 'exactSearch']);
 Route::any('/ajax/rankedSearch', [Ajax::class, 'rankedSearch']);
+Route::any('/ajax/needSearch', [Ajax::class, 'needSearch']);
 Route::any('/ajax/serialize', [Ajax::class, 'listify']);
 Route::any('/ajax/detailList', [Ajax::class, 'detailList']);
 Route::any('/ajax/typeList', [Ajax::class, 'typeList']);
@@ -42,3 +44,7 @@ Route::any('/ajax/ftrValList', [Ajax::class, 'getFtrVals']);
 Route::any('/ajax/form/atr', [Ajax::class, 'getFormAtr']);
 Route::any('/ajax/form/ftr', [Ajax::class, 'getFormFtr']);
 Route::any('/ajax/form/cmpr', [Ajax::class, 'getFormCmpr']);
+Route::any('/ajax/form/need', [Ajax::class, 'getFormNeed']);
+
+Route::any('/addNeedmap', [Home::class, 'needmapPage']);
+Route::any('/ajax/addNeedmap', [Ajax::class, 'addNeedmap']);

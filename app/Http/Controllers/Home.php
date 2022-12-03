@@ -6,6 +6,7 @@ use App\Http\Controllers\Ajax;
 
 use App\Models\Attribute;
 use App\Models\Feature;
+use App\Models\Needmap;
 use App\Models\Own;
 use App\Models\Product;
 use App\Models\Sell;
@@ -60,20 +61,14 @@ class Home extends Controller {
         }
 
         if($user->type == 'vendor') {
-            $sells = Sell::where('vendor_id', $user->id)->get();
-            $results = Product::all()->filter(function ($prod, $index) use ($sells) {
-                return $sells->pluck('product_id')->contains($prod->id);
-            });
-            foreach($results as $result) {
-                $result->price = $sells->firstWhere('product_id', $result->id)->price;
-            }
+            $results = Sell::join('products', 'sells.product_id', '=', 'products.id')
+                           ->where('vendor_id', $user->id)
+                           ->get();
         } else {
-            $owns = Own::where('customer_id', $user->id)->get();
-            $results = Product::all()->filter(function ($prod, $index) use ($owns) {
-                return $owns->pluck('product_id')->contains($prod->id);
-            });
+            $results = Own::join('products', 'owns.product_id', '=', 'products.id')
+                          ->where('customer_id', $user->id)
+                          ->get();
         }
-
         return view('listWrapper', ['products' => $results, 'user' => $user, 'deletes' => true]);
     }
 
@@ -95,10 +90,29 @@ class Home extends Controller {
         return view('rankedSearch', ['user' => $user]);
     }
 
+    public function needSearchPage(Request $request) {
+        $user = Auth::user();
+        if(is_null($user)) {
+            return redirect('/');
+        }
+
+        $needmaps = Needmap::all();
+
+        return view('needSearch', ['user' => $user, 'needmaps' => $needmaps]);
+    }
+
+    public function needmapPage(Request $request) {
+        $user = Auth::user();
+        if(is_null($user) || $user->username != 'admin') {
+            return redirect('/');
+        }else{
+            return view('addNeedmap', ['user' => $user]);
+        }
+    }
+
     public function productlist(Request $request) {
         $user = Auth::user();
         if(is_null($user)) {
-           
              return redirect('/');
         }else{
 

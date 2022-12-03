@@ -9,6 +9,7 @@
     if(isset($user) && $user->type == 'customer') {
         $defaultPages[url("/exactSearch")] = "Exact Search";
         $defaultPages[url("/rankedSearch")] = "Ranked Search";
+        $defaultPages[url("/needSearch")] = "Need-based Search";
     }
 @endphp
 

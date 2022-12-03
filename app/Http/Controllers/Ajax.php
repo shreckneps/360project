@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Attribute;
 use App\Models\Feature;
+use App\Models\Needmap;
+use App\Models\NeedmapField;
 use App\Models\Own;
 use App\Models\Product;
 use App\Models\Sell;
@@ -197,7 +199,7 @@ class Ajax extends Controller {
                 $fopr = $request->input($ftype . 'opr' . $fnum);
 
                 if($ftype == 'atr') {
-                    if($field = 'Price') {
+                    if($field == 'Price') {
                         $fsaved = $result->price;
                     } else {
                         $fsaved = Attribute::where('name', $request->input($field))
@@ -216,6 +218,7 @@ class Ajax extends Controller {
                     $result->searchMatch += 1;
                 }
             }
+            //echo $result->name . ' -- ' . $result->searchMatch . '<br>';
         }
         
         $results = $results->sortBy([ ['searchMatch', 'desc'], ['price', 'asc'] ]);
@@ -225,6 +228,7 @@ class Ajax extends Controller {
     }
 
     private function compareEval($left, $op, $right) {
+        //echo $left . ' ' . $op . ' ' . $right . '<br>';
         switch($op) {
             case 'eq':
                 return($left == $right);
@@ -239,6 +243,79 @@ class Ajax extends Controller {
                 return($left > $right);
                 break;
         }
+    }
+
+    public function needSearch(Request $request) {
+        $user = Auth::user();
+        if(is_null($user) || $user->type != 'customer') {
+            return "Authentication error.";
+        }
+
+        $needmap = Needmap::find($request->needmap);
+        $sum = 0;
+        $lists = [];
+
+        $lhs = NeedmapField::where('needmap_id', $needmap->id)
+                           ->where('type', 'lhs')
+                           ->get();
+        foreach($lhs as $field) {
+            $owned = Own::join('products', 'owns.product_id', '=', 'products.id')
+                        ->where('customer_id', $user->id);
+            if($field->product_type != null) {
+                $owned = $owned->where('type', $field->product_type);
+            }
+
+            $owned = $owned->get();
+            foreach($owned as $item) {
+                $fieldValue = Attribute::where('product_id', $item->product_id)
+                                       ->firstWhere('name', $field->attribute_name);
+                if($fieldValue != null) {
+                    $sum += $fieldValue->value;
+                }
+            }
+        }
+
+        $rhs = NeedmapField::where('needmap_id', $needmap->id)
+                           ->where('type', 'rhs')
+                           ->get();
+        foreach($rhs as $field) {
+            $existing = Own::join('products', 'owns.product_id', '=', 'products.id')
+                           ->where('customer_id', $user->id);
+            if($field->product_type != null) {
+                $existing = $existing->where('type', $field->product_type);
+            }
+            $existing = $existing->whereExists(function ($query) use ($field, $sum) {
+                $query->select(DB::raw(1))
+                      ->from('attributes')
+                      ->whereColumn('attributes.product_id', 'owns.product_id')
+                      ->where('attributes.name', $field->attribute_name)
+                      ->where('attributes.value', '>=', $sum);
+            });
+            if($existing->count() > 0) {
+                continue;
+            }
+
+            $sold = Sell::join('products', 'sells.product_id', '=', 'products.id');
+            if($field->product_type != null) {
+                $sold = $sold->where('type', $field->product_type);
+            }
+            $sold = $sold->whereExists(function ($query) use ($field, $sum) {
+                $query->select(DB::raw(1))
+                      ->from('attributes')
+                      ->whereColumn('attributes.product_id', 'sells.product_id')
+                      ->where('attributes.name', $field->attribute_name)
+                      ->where('attributes.value', '>=', $sum);
+            });
+            
+            if($field->product_type != null) {
+                $keystring = $field->product_type . ' with sufficient ' . $field->attribute_name;
+            } else {
+                $keystring = 'Products with sufficient ' . $field->attribute_name;
+            }
+            $lists[$keystring] = $sold->get();
+        }
+
+        return view('needList', ['sum' => $sum, 'lists' => $lists]);
     }
 
     public function detailList(Request $request) {
@@ -324,6 +401,53 @@ class Ajax extends Controller {
         }
     }
 
+    public function getFormNeed(Request $request) {
+        return view('form.need', ['side' => $request->side, 'num' => $request->num]);
+    }
+
+    public function addNeedmap(Request $request) {
+        $user = Auth::user();
+        if(is_null($user) || $user->username != 'admin') {
+            return redirect('/');
+        }
+
+        $map = new Needmap;
+        $map->name = $request->mname;
+        $map->description = $request->mdesc;
+        $map->save();
+
+        for($i = 0; $i < $request->numLhs; $i++) {
+            if(! $request->filled('lhs' . $i . 'name')) {
+                continue;
+            }
+            $field = new NeedmapField;
+            $field->needmap_id = $map->id;
+            if($request->filled('lhs' . $i . 'type')) {
+                $field->product_type = $request->input('lhs' . $i . 'type');
+            }
+            $field->attribute_name = $request->input('lhs' . $i . 'name');
+            $field->type = 'lhs';
+            $field->save();
+        }
+
+        for($i = 0; $i < $request->numRhs; $i++) {
+            if(! $request->filled('rhs' . $i . 'name')) {
+                continue;
+            }
+            $field = new NeedmapField;
+            $field->needmap_id = $map->id;
+            if($request->filled('rhs' . $i . 'type')) {
+                $field->product_type = $request->input('rhs' . $i . 'type');
+            }
+            $field->attribute_name = $request->input('rhs' . $i . 'name');
+            $field->type = 'rhs';
+            $field->save();
+        }
+
+        return 'Needmap added';
+    }
+
+
     public function listify(Request $request) {
         $num = $request->num;
         $arr = array();
@@ -332,6 +456,7 @@ class Ajax extends Controller {
         }
         return view('listing', ['arr' => $arr]);
     }
+
 
 }
 
