@@ -5,7 +5,7 @@
 @section('mainContent')
     <table class="table">
         <tr>
-            <th scope="col">Name</th>
+            <th scope="col">Need Category</th>
             <th scope="col">Need Description</th>
             <th scope="col">Run Search</th>
         </tr>

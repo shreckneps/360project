@@ -69,7 +69,7 @@ class Home extends Controller {
                           ->where('customer_id', $user->id)
                           ->get();
         }
-        return view('listWrapper', ['products' => $results, 'user' => $user, 'deletes' => true]);
+        return view('listWrapper', ['user' => $user]);
     }
 
     public function exactSearchPage(Request $request) {
@@ -110,63 +110,18 @@ class Home extends Controller {
         }
     }
 
-    public function productlist(Request $request) {
+    public function datagenPage(Request $request) {
         $user = Auth::user();
-        if(is_null($user)) {
-             return redirect('/');
+        if(is_null($user) || $user->username != 'admin') {
+            return redirect('/');
         }else{
-
-        if($user->type == 'customer'){
-
-           $productlist = DB::table('products')-> get();
-           return view('productlist', ['productlist'=>$productlist],['user' => $user]);
-        }else
-        echo('vendor');
-            $selllist = DB::table('sells')-> get();
-            $productlist = DB::table('products')-> get();
-           
-           /* while($selllist->product_id == $productlist->id){
-
-            }
-
-            */
-            //just lists all products right now even for vendor
-            return view('productlist', ['productlist'=>$productlist],['user' => $user]);
-            
-           
-           ;
-           
-
-            
-           /*
-           if ($request->has('productlist')) {              
-
-                if($user->type == 'vendor'){
-                  
-                    $productlist = DB::table('sells')-> get();
-                    return view('productlist', ['productlist'=>$productlist],['user' => $user]);
-                    
-                }
-                else{
-                    echo('hasuser2');
-                    $productlist = DB::table('products')-> get();
-                    return view('productlist', ['productlist'=>$productlist],['user' => $user]);
-                }
- 
-                #not sure if I can even do this? Need a way to tell if customer wants to list owns or products
-            }elseif($request->has('ownslist')){
-
-                if($user->type == 'customer'){
-                    $ownslist = DB::table('owns')-> get();
-                    $productlist = DB::table('products')-> get();
-                   // return view('productlist','ownslist','user','request', ['productlist'=>$productlist],['ownslist'=> $ownslist],['user'=> $user],['request' => $request]);
-                }
-            }
-*/        
-    }
+            return view('datagen', ['user' => $user]);
+        }
     }
 
-    
+    public function testPage(Request $request) {
+        return view('testGeneric');
+    }
 
 }
 

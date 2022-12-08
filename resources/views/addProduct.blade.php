@@ -3,7 +3,7 @@
 @section('title', 'Add Listing')
 
 @section('mainContent')
-    <div id="adderFeedback"> </div>
+    <div hidden id="adderFeedback"> </div>
     
     <script>
         var numAttributes = 1;
@@ -57,16 +57,18 @@
             @if ($user->type == 'vendor')
                 var price = document.getElementById("priceInput").value;
                 if(price == "") {
-                    document.getElementById("adderFeedback").innerHTML = "Please specify a price for your listing of this product.";
+                    showAlert("Please specify a price for your listing of this product.");
                     return false;
                 }
                 toSend = toSend + "&sprice=" + price;
             @endif
-            $("#adderFeedback").load("./ajax/addListing", toSend);
+            $("#adderFeedback").load("./ajax/addListing", toSend, function(data) {
+                showAlert($("#adderFeedback").html());
+            });
 
             numAttributes = 0;
             numFeatures = 0;
-            $.get("./ajax/form/atr", "num=" + numAttributes, function(data) {
+            $.get("./ajax/form/attribute", "num=" + numAttributes, function(data) {
                 document.getElementById("recursiveArea").innerHTML = data;
                 numAttributes++;
             });
@@ -77,11 +79,13 @@
 
         function addProduct() {
             var toSend = $("#adder").serialize() + "&numFtr=" + numFeatures + "&numAtr=" + numAttributes;
-            $("#adderFeedback").load("./ajax/addProduct", toSend);
+            $("#adderFeedback").load("./ajax/addProduct", toSend, function(data) {
+                showAlert($("#adderFeedback").html());
+            });
 
             numAttributes = 0;
             numFeatures = 0;
-            $.get("./ajax/form/atr", "num=" + numAttributes, function(data) {
+            $.get("./ajax/form/attribute", "num=" + numAttributes, function(data) {
                 document.getElementById("recursiveArea").innerHTML = data;
                 numAttributes++;
             });

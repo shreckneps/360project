@@ -1,4 +1,3 @@
-    <div id="adderFeedback"> </div>
 @extends('main')
 
 @section('title', 'Add Needmap')
@@ -88,12 +87,5 @@
             });
         }
     </script>
-    <hr>
-    Fill here -- should be able to specify an attribute and a set of product types.
-    When searching by this need, it will sum up all of the values for that attribute from those types.
-    
-    Should also be able to specify multiple attributes and product types to fill that need.
-    It will compare the value from the first attribute, summing it up, and find products that
-    match the second attribute/types such that their value is greater than that of the lhs.
 
 @endsection

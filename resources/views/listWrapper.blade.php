@@ -4,6 +4,10 @@
 
 @section('mainContent')
 
-    @include('list')
+<script> 
+    useQuery="";
+    useRoute="./ajax/userProducts";
+    $("#main-content").load(useRoute, useQuery);
+</script>
 
 @endsection

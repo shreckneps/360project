@@ -12,20 +12,22 @@ use App\Models\Sell;
 use App\Models\User;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\View;
 
 class Ajax extends Controller {
 
     public function addListing(Request $request) {
         $user = Auth::user();
         if(is_null($user)) {
-            return "Authentication error.";
+            return 'Authentication error.';
         }
 
         $prod = Product::find($request->product_id);
         if(is_null($prod)) {
-            return "Attempted to add invalid product. Try again or manually specify product details.";
+            return 'Attempted to add invalid product. Try again or manually specify product details.';
         }
 
         if($user->type == 'customer') {
@@ -37,7 +39,7 @@ class Ajax extends Controller {
             $existing = Sell::where('vendor_id', $user->id)
                             ->where('product_id', $prod->id);
             if($existing->count() > 0) {
-                return "You cannot list a product you already sell.";
+                return 'You cannot list a product you already sell.';
             }
             $sell = new Sell;
             $sell->vendor_id = $user->id;
@@ -46,36 +48,81 @@ class Ajax extends Controller {
             $sell->save();
         }
         
-        return "Product added.";
+        return 'Product added.';
     }
 
     public function addProduct(Request $request) {
         $user = Auth::user();
         if(is_null($user)) {
-            return "Authentication error.";
+            return 'Authentication error.';
         }
         $prod = new Product;
         $prod->name = $request->pname;
         $prod->type = $request->ptype;
         $prod->save();
 
+        $duplicateFilter = [];
+
+        $attributes = Attribute::whereExists(function ($query) use ($request) {
+            $query->select(DB::raw(1))
+                  ->from('products')
+                  ->whereColumn('attributes.product_id', 'products.id')
+                  ->where('products.type', $request->ptype);
+        });
+        $attributes = $attributes->select('name')->distinct()->get()->pluck('name');
+
+
+        $features = Feature::whereExists(function ($query) use ($request) {
+            $query->select(DB::raw(1))
+                  ->from('products')
+                  ->whereColumn('features.product_id', 'products.id')
+                  ->where('products.type', $request->ptype);
+        });
+        $features = $features->select('name')->distinct()->get()->pluck('name');
+
         for($i = 0; $i < $request->numAtr; $i++) {
-            if($request->has('atrval' . $i)) {
+            if($request->filled('atr' . $i)) {
+                if(array_key_exists($request->input('atr' . $i), $duplicateFilter)) {
+                    continue;
+                }
+                if($request->input('atr' . $i) == 'Price') {
+                    continue;
+                }
+                if($features->contains($request->input('atr' . $i))) {
+                    continue;
+                }
                 $atr = new Attribute;
                 $atr->product_id = $prod->id;
                 $atr->name = $request->input('atr' . $i);
                 $atr->value = $request->input('atrval' . $i);
                 $atr->save();
+
+                $duplicateFilter[$atr->name] = true;
             }
         }
 
         for($i = 0; $i < $request->numFtr; $i++) {
-            if($request->has('ftrval' . $i)) {
+            if($request->filled('ftr' . $i)) {
+                if(array_key_exists($request->input('ftr' . $i), $duplicateFilter)) {
+                    continue;
+                }
+                if($request->input('ftr' . $i) == 'Price') {
+                    continue;
+                }
+                if($attributes->contains($request->input('ftr' . $i))) {
+                    continue;
+                }
                 $ftr = new Feature;
                 $ftr->product_id = $prod->id;
                 $ftr->name = $request->input('ftr' . $i);
-                $ftr->value = $request->input('ftrval' . $i);
+                if($request->filled('ftrval' . $i)) {
+                    $ftr->value = $request->input('ftrval' . $i);
+                } else {
+                    $ftr->value = 'Yes';
+                }
                 $ftr->save();
+
+                $duplicateFilter[$ftr->name] = true;
             }
         }
 
@@ -92,23 +139,23 @@ class Ajax extends Controller {
             $sell->save();
         }
         
-        return "Product added.";
+        return 'Product added.';
     }
 
     public function listExisting(Request $request) {
         $results = Product::where('type', $request->type)
                           ->where('name', $request->name);
         if($results->count() > 0) {
-            return "<br><h3>Or Choose an Existing Product: </h3>" . view('list', ['products' => $results->get(), 'adds' => 'yes']);
+            return '<br><h3>Or Choose an Existing Product: </h3>' . view('list', ['products' => $results->get(), 'adds' => 'yes', 'page' => 1]);
         } else {
-            return "";
+            return '';
         }
     }
 
     public function removeListing(Request $request) {
         $user = Auth::user();
         if(is_null($user)) {
-            return "Authentication error.";
+            return 'Authentication error.';
         }
         
         if($user->type == 'vendor') {
@@ -128,13 +175,15 @@ class Ajax extends Controller {
         if(Own::all()->contains('product_id', $request->del_id)) {
             return;
         }
+        Attribute::where('product_id', $request->del_id)->delete();
+        Feature::where('product_id', $request->del_id)->delete();
         Product::destroy($request->del_id);
     }
 
     public function exactSearch(Request $request) {
         $user = Auth::user();
         if(is_null($user)) {
-            return "Authentication error.";
+            return 'Authentication error.';
         }
 
         $results = Sell
@@ -144,39 +193,41 @@ class Ajax extends Controller {
         if($request->filled('pname')) {
             $results = $results->where('name', $request->pname);
         }
-        
-        for($i = 0; $i < $request->numAtr; $i++) {
-            if($request->has('atrval' . $i)) {
-                $results = $results->whereExists(function ($query) use ($request, $i) {
+
+        for($i = 0; $i < $request->numFld; $i++) {
+            if($request->filled('fld' . $i . 'type')) {
+                $name = $request->input('fld' . $i);
+                $val = $request->input('fld' . $i . 'val');
+                $type = $request->input('fld' . $i . 'type');
+                $table;
+
+                if($type == 'atr') {
+                    $table = 'attributes';
+                } else {
+                    $table = 'features';
+                    if(is_null($val)) {
+                        $val = 'Yes';
+                    }
+                }
+                
+                $results = $results->whereExists(function ($query) use ($name, $val, $table) {
                     $query->select(DB::raw(1))
-                          ->from('attributes')
-                          ->whereColumn('attributes.product_id', 'sells.product_id')
-                          ->where('attributes.name', $request->input('atr' . $i))
-                          ->where('attributes.value', $request->input('atrval' . $i));
+                          ->from($table)
+                          ->whereColumn($table . '.product_id', 'sells.product_id')
+                          ->where($table . '.name', $name)
+                          ->where($table . '.value', $val);
                 });
+
             }
         }
 
-        for($i = 0; $i < $request->numFtr; $i++) {
-            if($request->has('ftrval' . $i)) {
-                $results = $results->whereExists(function ($query) use ($request, $i) {
-                    $query->select(DB::raw(1))
-                          ->from('features')
-                          ->whereColumn('features.product_id', 'sells.product_id')
-                          ->where('features.name', $request->input('ftr' . $i))
-                          ->where('features.value', $request->input('ftrval' . $i));
-                });
-            }
-        }
-
-        //return var_dump($results);
-        return view('list', ['products' => $results->get()->sortBy('price'), 'user' => $user]);
+        return view('paginatedList', ['products' => $results->get()->sortBy('price'), 'user' => $user, 'page' => $request->input('page', 1)]);
     }
 
     public function rankedSearch(Request $request) {
         $user = Auth::user();
         if(is_null($user)) {
-            return "Authentication error.";
+            return 'Authentication error.';
         }
 
         $results = Sell
@@ -184,63 +235,116 @@ class Ajax extends Controller {
             ->where('type', $request->ptype)
             ->get();
 
-        foreach ($results as $result) {
+        foreach ($results as $key => $result) {
             $result->searchMatch = 0;
-            for($i = 0; $i < $request->numFtr + $request->numAtr; $i++) {
-                $result->searchMatch *= 2;
+            //var_dump($result);
+            //foreach($result as $rkey => $rval) {
+                //echo $rkey . ' - ' . $rval . ' ';
+            //}
+        }
 
-                $field = $request->input('fld' . $i);
-                $ftype = substr($field, 0, 3);
-                $fnum = substr($field, 3);
-                if(!$request->has($ftype . 'val' . $fnum)) {
-                    continue;
-                }
-                $fval = $request->input($ftype . 'val' . $fnum);
-                $fopr = $request->input($ftype . 'opr' . $fnum);
+        for($i = 0; $i < $request->numFld; $i++) {
+            if($request->filled('fld' . $i . 'type')) {
+                $name = $request->input('fld' . $i);
+                $opr = $this->translateOp($request->input('fld' . $i . 'opr'));
+                $val = $request->input('fld' . $i . 'val');
+                $type = $request->input('fld' . $i . 'type');
+                $weight = $request->input('fld' . $i . 'weight');
 
-                if($ftype == 'atr') {
-                    if($field == 'Price') {
-                        $fsaved = $result->price;
-                    } else {
-                        $fsaved = Attribute::where('name', $request->input($field))
-                                           ->where('product_id', $result->product_id)
-                                           ->first()
-                                           ->value;
-                    }
+                $matching;
+
+                if($name == 'Price') {
+                    $matching = $results->where('price', $opr, $val);
                 } else {
-                    $fsaved = Feature::where('name', $request->input($field))
-                                     ->where('product_id', $result->product_id)
-                                     ->first()
-                                     ->value;
+                    $table;
+                    if($type == 'atr') {
+                        $table = 'attributes';
+                    } else {
+                        $table = 'features';
+                        if(is_null($val)) {
+                            $val = 'Yes';
+                        }
+                    }
+                    $product_ids = DB::table($table)
+                                     ->where('name', $name)
+                                     ->where('value', $opr, $val)
+                                     ->select('product_id')
+                                     ->get()
+                                     ->pluck('product_id')
+                                     ->all();
+                    
+                    $matching = $results->whereIn('product_id', $product_ids);
                 }
-
-                if (isset($fsaved) && $this->compareEval($fsaved, $fopr, $fval)) {
-                    $result->searchMatch += 1;
+                
+                if(isset($matching)) {
+                    foreach($matching as $match) {
+                        $match->searchMatch += $weight;
+                    }
                 }
             }
-            //echo $result->name . ' -- ' . $result->searchMatch . '<br>';
         }
-        
+
+/*
+        for($i = 0; $i < $request->numFld; $i++) {
+            if($request->filled('fld' . $i . 'type')) {
+                $name = $request->input('fld' . $i);
+                $opr = $request->input('fld' . $i . 'opr');
+                $val = $request->input('fld' . $i . 'val');
+                $type = $request->input('fld' . $i . 'type');
+                $weight = $request->input('fld' . $i . 'weight');
+                $savedval;
+
+                if($name == 'Price') {
+                    $savedval = $result->price;
+                } else { 
+                    $table;
+                    if($type == 'atr') {
+                        $table = 'attributes';
+                    } else {
+                        $table = 'features';
+                        if(is_null($val)) {
+                            $val = 'Yes';
+                        }
+                    }
+                    $record = DB::table($table)
+                                ->where('product_id', $result->product_id)
+                                ->where('name', $name)
+                                ->first();
+
+                    if(isset($record)) {
+                        $savedval = $record->value;
+                    }
+                }
+
+                if (isset($savedval) && $this->compareEval($savedval, $opr, $val)) {
+                    $result->searchMatch += $weight;
+                }
+
+            }
+        }
+ */           
         $results = $results->sortBy([ ['searchMatch', 'desc'], ['price', 'asc'] ]);
 
-        return view('list', ['products' => $results, 'user' => $user]);
+        return view('paginatedList', ['products' => $results, 'user' => $user, 'page' => $request->input('page', 1)]);
 
     }
 
-    private function compareEval($left, $op, $right) {
-        //echo $left . ' ' . $op . ' ' . $right . '<br>';
+    private function translateOp($op) {
         switch($op) {
             case 'eq':
-                return($left == $right);
+                return '=';
                 break;
             case 'ne':
-                return($left != $right);
+                return '!=';
                 break;
             case 'lt':
-                return($left < $right);
+                return '<';
                 break;
             case 'gt':
-                return($left > $right);
+                return '>';
+                break;
+            default:
+                return '==';
                 break;
         }
     }
@@ -248,12 +352,12 @@ class Ajax extends Controller {
     public function needSearch(Request $request) {
         $user = Auth::user();
         if(is_null($user) || $user->type != 'customer') {
-            return "Authentication error.";
+            return 'Authentication error.';
         }
 
         $needmap = Needmap::find($request->needmap);
         $sum = 0;
-        $lists = [];
+        $lists = collect([]);
 
         $lhs = NeedmapField::where('needmap_id', $needmap->id)
                            ->where('type', 'lhs')
@@ -314,8 +418,12 @@ class Ajax extends Controller {
             }
             $lists[$keystring] = $sold->get();
         }
-
-        return view('needList', ['sum' => $sum, 'lists' => $lists]);
+        
+        $pages = collect([]);
+        for($i = 0; $i < $lists->count(); $i++) {
+            $pages[$i] = $request->input('page' . $i, 1);
+        }
+        return view('needList', ['sum' => $sum, 'lists' => $lists, 'pages' => $pages]);
     }
 
     public function detailList(Request $request) {
@@ -384,12 +492,12 @@ class Ajax extends Controller {
         return view('form.datalist', ['options' => $values]);
     }
 
-    public function getFormAtr(Request $request) {
-        return view('form.attribute', ['num' => $request->num]);
-    }
-
-    public function getFormFtr(Request $request) {
-        return view('form.feature', ['num' => $request->num]);
+    public function getForm(Request $request, $type) {
+        if (View::exists('form.' . $type)) {
+            return view('form.' . $type, ['num' => $request->num, 'side' => $request->side]);
+        } else {
+            return 'Error finding desired form.';
+        }
     }
 
     public function getFormCmpr(Request $request) {
@@ -399,10 +507,6 @@ class Ajax extends Controller {
         } else {
             return view('form.featureComparison', ['num' => $request->numFtr, 'sum' => $sum]);
         }
-    }
-
-    public function getFormNeed(Request $request) {
-        return view('form.need', ['side' => $request->side, 'num' => $request->num]);
     }
 
     public function addNeedmap(Request $request) {
@@ -445,6 +549,25 @@ class Ajax extends Controller {
         }
 
         return 'Needmap added';
+    }
+
+    public function userProducts(Request $request) {
+        $user = Auth::user();
+        if(is_null($user)) {
+            return 'Authentication error.';
+        }
+
+        if($user->type == 'vendor') {
+            $results = Sell::join('products', 'sells.product_id', '=', 'products.id')
+                           ->where('vendor_id', $user->id)
+                           ->get();
+        } else {
+            $results = Own::join('products', 'owns.product_id', '=', 'products.id')
+                          ->where('customer_id', $user->id)
+                          ->get();
+        }
+
+        return view('paginatedList', ['products' => $results, 'user' => $user, 'deletes' => true, 'page' => $request->input('page', 1)]);
     }
 
 

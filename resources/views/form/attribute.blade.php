@@ -1,6 +1,6 @@
 
 <tr>
-    <td> <input autocomplete="off" onchange="fieldChange(this.id)" list="attributeList" class="form-control" id="atr{{ $num }}" name="atr{{ $num }}"> </td>
+    <td> <input autocomplete="off" onchange="fieldChange(this.id)" list="attributeList" class="form-control field" id="atr{{ $num }}" name="atr{{ $num }}"> </td>
     <td> <input autocomplete="off" list="atrval{{ $num }}list" disabled required type="number" step="any" class="form-control" id="atrval{{ $num }}" name="atrval{{ $num }}"> </td>
 </tr>
 

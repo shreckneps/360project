@@ -1,3 +1,21 @@
+@if (isset($paginated))
+    <input hidden id="maxPage" value="{{ $pages }}">
+    <table class="table"> <tr>
+        <td> </td>
+        <td> Page {{ $page }} out of {{ $pages }} </td>
+        <td> </td>
+    </tr> <tr>
+        <td> <button value="{{ $page - 1}}" class="btn btn-primary" onclick="getPage(this.value)"
+            type="button" @if ($page == 1) disabled @endif > Previous </button> </td>
+        <td> <input type="number" id="jumpDest" value="{{ $page }}"
+                    min="1" max="{{ $pages }}" onchange="boundsCheck(this.id)">
+        <button type="button" class="btn btn-primary" 
+            onclick="getPage($('#jumpDest').val())">Go </button> </td>
+        <td> <button value="{{ $page + 1}}" class="btn btn-primary" onclick="getPage(this.value)"
+            type="button" @if ($page == $pages) disabled @endif > Next </button> </td>
+    </tr> </table>
+@endif
+
 <table class="table">
     <tr>
         <th scope="col">Category</th>

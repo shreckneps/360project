@@ -21,5 +21,10 @@
         <tr> <td> </td> <td align="right"> <button class="form-control btn btn-primary" name="login" type="submit">Login</button> </td> </tr>
         </table>
     </form>
+    
+    @if (isset($failure))
+        <script> showAlert("{{ $failure }}", "danger") </script>
+    @endif
+
 @endsection
 

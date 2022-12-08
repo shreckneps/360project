@@ -38,9 +38,32 @@
             </div> </nav>
         </div>
 
-        <div id="main-content" class="col-md">
-            @yield('mainContent')
+        <div id="main-content-wrapper" class="col-md">
+            <div id="feedback-wrapper"> </div>
+            
+            <div class="alert alert-dismissible" id="feedback-prototype" hidden>
+                <div></div>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"> </button>
+            </div>
+
+            <script>
+                var alertsShown = 0;
+                var useQuery;
+                var useRoute;
+                function showAlert(contents, type = "secondary") {
+                    $("#feedback-wrapper").prepend($("#feedback-prototype").clone()
+                        .removeAttr("hidden").attr("id", "feedback-" + (alertsShown++))
+                        .addClass("alert-" + type).children().first().html(contents).parent()
+                    );
+                }
+            </script>
+
+            <div id="main-content">
+                @yield('mainContent')
+            </div>
+
         </div>
+
     </div> </div>
 </body>
 </html>

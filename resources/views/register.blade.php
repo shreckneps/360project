@@ -27,5 +27,10 @@
         </tr>
         </table>
     </form>
+
+    @if (isset($failure))
+        <script> showAlert("{{ $failure }}", "danger") </script>
+    @endif
+
 @endsection
 

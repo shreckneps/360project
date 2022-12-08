@@ -14,21 +14,25 @@ class Accounts extends Controller {
         if(!is_null(Auth::user())) {
             return redirect('/');
         }
+
+        $failure = null;
         if ($request->has('login')) {
             if (Auth::attempt(['username' => $request->username, 'password' => $request->password])) {
                 $request->session()->regenerate();
                 return redirect('/');
             } else {
-                echo 'Login failed: incorrect username/password. <br>';
+                $failure = 'Login failed: incorrect username/password.';
             }
         }
-        return view('login');
+        return view('login', ['failure' => $failure]);
     }
 
     public function register(Request $request) {
         if(!is_null(Auth::user())) {
             return redirect('/');
         }
+
+        $failure = null;
         if ($request->has('register')) {
             if($request->password == $request->password_conf) {
                 $existing = User::where('username', $request->username)->count();
@@ -44,13 +48,13 @@ class Accounts extends Controller {
                     $request->session()->regenerate();
                     return redirect('/');
                 } else {
-                    echo 'Username already taken. <br>';
+                    $failure = 'Registration failed: username already taken.'; 
                 }
             } else {
-                echo 'Passwords must match. <br>';
+                $failure = 'Registration failed: passwords must match.';
             }
         }
-        return view('register');
+        return view('register', ['failure' => $failure]);
     }
         
 }
