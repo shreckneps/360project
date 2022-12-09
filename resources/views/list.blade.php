@@ -48,14 +48,16 @@
             <td>{{ $product->type }}</td>
             <td>{{ $product->name }}</td>
             @if (isset($product->price))
-                <td>{{ $product->price }}</td>
+                <td>{{ sprintf('$%.2f', $product->price) }}</td>
             @endif
             <td> 
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#detailModal"
                  data-name="{{ $product->name }}" data-type="{{ $product->type }}" data-key="{{ $pid }}"
-                 @if (isset($product->price)) data-price="{{ $product->price }}" @endif
+                 @if (isset($product->price)) data-price="{{ sprintf('$%.2f', $product->price) }}" @endif
+                 @if (isset($product->price)) data-praw="{{ $product->price }}" @endif
                  @if (isset($product->vendor_id)) data-vid="{{ $product->vendor_id }}" @endif
-                 @if (isset($product->cancellation_fee)) data-cancellation_fee="{{ $product->cancellation_fee }}" @endif > View </button> 
+                 @if (isset($product->cancellation_fee)) data-fraw="{{ $product->cancellation_fee }}" @endif
+                 @if (isset($product->cancellation_fee)) data-cancellation_fee="{{ sprintf('$%.2f', $product->cancellation_fee) }}" @endif > View </button> 
             </td>
             @if (isset($deletes))
                 <td><button type="button" class="btn btn-danger" value="{{ $pid }}" onclick="deleteProduct(this.value)">X</button></td>
@@ -99,7 +101,7 @@
                 <input type="hidden" id="productOffer">
                 <input type="hidden" id="vendorOffer">
                 <input type="hidden" id="feeOffer">
-                <input type="number" step="0.01" min="0" id="priceOffer">
+                $<input type="number" step="0.01" min="0" id="priceOffer">
                 <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
                         onclick="makeOffer()">Make Offer</button>
                 @endif
@@ -126,10 +128,10 @@
         @endif
         
         @if ($user->type == 'customer' && isset($products->first()->cancellation_fee))
-            modal.find("#priceOffer").val(parseFloat(button.data("price")));
+            modal.find("#priceOffer").val(parseFloat(button.data("praw")));
             modal.find("#productOffer").val(button.data("key"));
             modal.find("#vendorOffer").val(button.data("vid"));
-            modal.find("#feeOffer").val(button.data("cancellation_fee"));
+            modal.find("#feeOffer").val(button.data("fraw"));
 
         @endif
 

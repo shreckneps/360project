@@ -18,10 +18,11 @@
         <tr id="row{{ $offer->id }}">
             <td>{{ $offer->status }}</td>
             <td>{{ $offer->name }}</td>
-            <td>{{ $offer->price }}</td>
+            <td>{{ sprintf('$%.2f', $offer->price) }}</td>
             <td> <button type="button" class="btn btn-primary" data-bs-toggle="modal"
                          data-bs-target="#detailModal" data-name="{{ $offer->name }}"
-                         data-price="{{ $offer->price }}" data-fee="{{ $offer->cancellation_fee }}"
+                         data-price="{{ sprintf('$%.2f', $offer->price) }}" 
+                         data-fee="{{ sprintf('$%.2f', $offer->cancellation_fee) }}"
                          data-self="{{ $offer[$self] }}" data-other="{{ $offer[$other] }}"
                          data-key="{{ $offer->id }}" data-product="{{ $offer->product_id }}"
                  >View </button> </td>

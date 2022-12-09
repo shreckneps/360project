@@ -147,10 +147,15 @@ class Ajax extends Controller {
     }
 
     public function listExisting(Request $request) {
+        $user = Auth::user();
+        if(is_null($user)) {
+            return 'Authentication error.';
+        }
+
         $results = Product::where('type', $request->type)
                           ->where('name', $request->name);
         if($results->count() > 0) {
-            return '<br><h3>Or Choose an Existing Product: </h3>' . view('list', ['products' => $results->get(), 'adds' => 'yes', 'page' => 1]);
+            return '<br><h3>Or Choose an Existing Product: </h3>' . view('list', ['products' => $results->get(), 'adds' => 'yes', 'user' => $user]);
         } else {
             return '';
         }
@@ -177,6 +182,9 @@ class Ajax extends Controller {
             return;
         }
         if(Own::all()->contains('product_id', $request->del_id)) {
+            return;
+        }
+        if(Offer::all()->contains('product_id', $request->del_id)) {
             return;
         }
         Attribute::where('product_id', $request->del_id)->delete();
@@ -288,45 +296,6 @@ class Ajax extends Controller {
             }
         }
 
-/*
-        for($i = 0; $i < $request->numFld; $i++) {
-            if($request->filled('fld' . $i . 'type')) {
-                $name = $request->input('fld' . $i);
-                $opr = $request->input('fld' . $i . 'opr');
-                $val = $request->input('fld' . $i . 'val');
-                $type = $request->input('fld' . $i . 'type');
-                $weight = $request->input('fld' . $i . 'weight');
-                $savedval;
-
-                if($name == 'Price') {
-                    $savedval = $result->price;
-                } else { 
-                    $table;
-                    if($type == 'atr') {
-                        $table = 'attributes';
-                    } else {
-                        $table = 'features';
-                        if(is_null($val)) {
-                            $val = 'Yes';
-                        }
-                    }
-                    $record = DB::table($table)
-                                ->where('product_id', $result->product_id)
-                                ->where('name', $name)
-                                ->first();
-
-                    if(isset($record)) {
-                        $savedval = $record->value;
-                    }
-                }
-
-                if (isset($savedval) && $this->compareEval($savedval, $opr, $val)) {
-                    $result->searchMatch += $weight;
-                }
-
-            }
-        }
- */           
         $results = $results->sortBy([ ['searchMatch', 'desc'], ['price', 'asc'] ]);
 
         return view('paginatedList', ['products' => $results, 'user' => $user, 'page' => $request->input('page', 1)]);
