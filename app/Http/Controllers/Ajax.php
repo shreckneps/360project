@@ -6,6 +6,7 @@ use App\Models\Attribute;
 use App\Models\Feature;
 use App\Models\Needmap;
 use App\Models\NeedmapField;
+use App\Models\Offer;
 use App\Models\Own;
 use App\Models\Product;
 use App\Models\Sell;
@@ -136,6 +137,9 @@ class Ajax extends Controller {
             $sell->vendor_id = $user->id;
             $sell->product_id = $prod->id;
             $sell->price = $request->sprice;
+            if($request->filled('sfee')) {
+                $sell->cancellation_fee = $request->sfee;
+            }
             $sell->save();
         }
         
@@ -423,7 +427,7 @@ class Ajax extends Controller {
         for($i = 0; $i < $lists->count(); $i++) {
             $pages[$i] = $request->input('page' . $i, 1);
         }
-        return view('needList', ['sum' => $sum, 'lists' => $lists, 'pages' => $pages]);
+        return view('needList', ['user' => $user, 'sum' => $sum, 'lists' => $lists, 'pages' => $pages]);
     }
 
     public function detailList(Request $request) {
@@ -478,6 +482,66 @@ class Ajax extends Controller {
         });
         $values = $values->select('value')->distinct()->get()->pluck('value');
         return view('form.datalist', ['options' => $values]);
+    }
+
+    public function getFldVals(Request $request) {
+        echo $request->ptype . '<br>';
+        echo Product::firstWhere('type', $request->ptype)->name . '<br>';
+        $products = Product::where('type', $request->ptype);
+
+        if($request->formType != 'ranked') {
+            for($i = 0; $i < $request->numFld; $i++) {
+                if($i == $request->skipNum) {
+                    continue;
+                }
+                if($request->filled('fld' . $i . 'type')) {
+                    $name = $request->input('fld' . $i);
+                    $val = $request->input('fld' . $i . 'val');
+                    $type = $request->input('fld' . $i . 'type');
+                    $table;
+
+                    if($type == 'atr') {
+                        $table = 'attributes';
+                        if(is_null($val)) {
+                            continue;
+                        }
+                    } else {
+                        $table = 'features';
+                        if(is_null($val)) {
+                            $val = 'Yes';
+                        }
+                    }
+                    
+                    $products = $products->whereExists(function ($query) use ($name, $val, $table) {
+                        $query->select(DB::raw(1))
+                              ->from($table)
+                              ->whereColumn($table . '.product_id', 'products.id')
+                              ->where($table . '.name', $name)
+                              ->where($table . '.value', $val);
+                    });
+                }
+            }
+        }
+
+        if($products->count() == 0) {
+            return;
+        }
+
+        $table;
+        if($request->table == 'atr') {
+            $table = 'attributes';
+        } else {
+            $table = 'features';
+        }
+
+        $product_ids = $products->select('id')->get()->pluck('id')->all();
+
+        $values = DB::table($table)->where('name', $request->name)
+                                   ->whereIn('product_id', $product_ids);
+
+        $values = $values->select('value')->distinct()->get()->pluck('value');
+        return view('form.datalist', ['options' => $values]);
+        
     }
 
     public function getFtrVals(Request $request) {
@@ -570,6 +634,126 @@ class Ajax extends Controller {
         return view('paginatedList', ['products' => $results, 'user' => $user, 'deletes' => true, 'page' => $request->input('page', 1)]);
     }
 
+    public function addOffer(Request $request) {
+        $user = Auth::user();
+        if(is_null($user)) {
+            return 'Authentication error.';
+        }
+
+        $customer_id;
+        $vendor_id;
+        $customer_status = 'waiting';
+        $vendor_status = 'waiting';
+        if($user->type == 'customer') {
+            $customer_id = $user->id;
+            $vendor_id = $request->vendor;
+            $customer_status = 'accepted';
+        } else {
+            $customer_id = $request->customer;
+            $vendor_id = $user->id;
+            $vendor_status = 'accepted';
+        }
+
+        $offer = new Offer;
+        $offer->product_id = $request->product;
+        $offer->vendor_id = $vendor_id;
+        $offer->customer_id = $customer_id;
+        $offer->price = $request->offerPrice;
+        $offer->cancellation_fee = $request->fee;
+        $offer->vendor_status = $vendor_status;
+        $offer->customer_status = $customer_status;
+        $offer->save();
+
+        return "Offer placed.";
+    }
+
+    public function rejectOffer(Request $request) {
+        $user = Auth::user();
+        if(is_null($user)) {
+            return 'Authentication error.';
+        }
+        
+        $offer = Offer::find($request->offer);
+        if($user->id == $offer->customer_id) {
+            $offer->customer_status = 'rejected';
+        } else if($user->id == $offer->vendor_id) {
+            $offer->vendor_status = 'rejected';
+        } else {
+            return 'Authentication error.';
+        }
+
+        $offer->save();
+        if($offer->customer_status == $offer->vendor_status) {
+            $offer->delete();
+        }
+        return 'Offer rejected';
+    }
+
+    public function acceptOffer(Request $request) {
+        $user = Auth::user();
+        if(is_null($user)) {
+            return 'Authentication error.';
+        }
+
+        $offer = Offer::find($request->offer);
+        if($user->id == $offer->customer_id) {
+            $offer->customer_status = 'accepted';
+        } else if($user->id == $offer->vendor_id) {
+            $offer->vendor_status = 'accepted';
+        } else {
+            return 'Authentication error.';
+        }
+
+        $offer->save();
+        return 'Offer accepted. Reload this list to see changes.';
+    }
+
+    public function dismissOffer(Request $request) {
+        $user = Auth::user();
+        if(is_null($user)) {
+            return 'Authentication error.';
+        }
+        
+        $offer = Offer::find($request->offer);
+        $ret = 'Offer dismissed.';
+        if($user->id == $offer->customer_id) {
+            $offer->customer_status = 'finalized';
+            if($request->filled('add')) {
+                $own = new Own;
+                $own->customer_id = $user->id;
+                $own->product_id = $offer->product_id;
+                $own->save();
+                $ret = 'Product listed.';
+            }
+        } else if($user->id == $offer->vendor_id) {
+            $offer->vendor_status = 'finalized';
+        } else {
+            return 'Authentication error.';
+        }
+
+
+        $offer->save();
+        if($offer->customer_status == $offer->vendor_status) {
+            $offer->delete();
+        }
+        return $ret;
+    }
+
+    public function offerPartner(Request $request) {
+        $user = Auth::user();
+        if(is_null($user)) {
+            return 'Authentication error.';
+        }
+        
+        $offer = Offer::find($request->offer);
+        if($user->id == $offer->customer_id) {
+            return User::find($offer->vendor_id)->name;
+        }else if($user->id == $offer->vendor_id) {
+            return User::find($offer->customer_id)->name;
+        } else {
+            return 'Authentication error.';
+        }
+    }
 
     public function listify(Request $request) {
         $num = $request->num;

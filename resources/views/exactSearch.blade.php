@@ -9,6 +9,7 @@
 </script>
 
 <form id="query" onsubmit="return getQuery()">
+    <input type="hidden" id="formType" name="formType" value="exact">
     <table class="table"> <tr>
         <td> <label for="typeInput">Product Category:</label> </td>
         <td> <label for="nameInput">Product Name:</label> </td>

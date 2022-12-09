@@ -3,7 +3,8 @@
 @section('title', 'Dashboard')
 
 @section('mainContent')
-
+    
+    Display Name: {{ $user->name }} <br>
     Username: {{ $user->username }} <br>
     @if ($user->type == 'vendor')
         You are a vendor. You can review your products for sale, or list more products for sale.

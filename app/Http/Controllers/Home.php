@@ -7,6 +7,7 @@ use App\Http\Controllers\Ajax;
 use App\Models\Attribute;
 use App\Models\Feature;
 use App\Models\Needmap;
+use App\Models\Offer;
 use App\Models\Own;
 use App\Models\Product;
 use App\Models\Sell;
@@ -121,6 +122,43 @@ class Home extends Controller {
 
     public function testPage(Request $request) {
         return view('testGeneric');
+    }
+
+    public function showOffers(Request $request) {
+        $user = Auth::user();
+        if(is_null($user)) {
+            return redirect('/');
+        }
+
+        $offers;
+        $self;
+        $other;
+        if($user->type == 'customer') {
+            $self = 'customer_status';
+            $other = 'vendor_status';
+            $offers = Offer::where('customer_id', $user->id);
+        } else {
+            $self = 'vendor_status';
+            $other = 'customer_status';
+            $offers = Offer::where('vendor_id', $user->id);
+        }
+        $offers = $offers->where($self, '!=', 'rejected')
+                         ->where($self, '!=', 'finalized');
+        
+        $minProd = Product::select('id as product_id', 'name');
+        $offers = $offers->joinSub($minProd, 'products', function ($join) {
+            $join->on('offers.product_id', '=', 'products.product_id');
+        })->get();
+        foreach($offers as $offer) {
+            if($offer[$other] == 'waiting') {
+                $offer->status = 'Waiting';
+            } else {
+                $offer->status = 'Action Needed';
+            }
+        }
+        $offers = $offers->sortBy('status');
+
+        return view('offerList', ['user' => $user, 'offers' => $offers, 'self' => $self, 'other' => $other]);
     }
 
 }

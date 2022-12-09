@@ -40,7 +40,7 @@ class Accounts extends Controller {
                     $new = new User;
                     $new->username = $request->username;
                     $new->password = Hash::make($request->password);
-                    $new->name = "Fake Name";
+                    $new->name = $request->name;
                     $new->type = $request->register;
                     $new->save();
 

@@ -17,6 +17,8 @@
         <table>
         <tr> <td> <label for="username">Username: </label> </td>
         <td> <input class="form-control" required type="text" id="username" name="username"> </td> </tr>
+        <tr> <td> <label for="name">Display Name: </label> </td>
+        <td> <input class="form-control" required type="text" id="name" name="name"> </td> </tr>
         <tr> <td> <label for="password">Password: </label> </td>
         <td> <input class="form-control" required type="password" id="password" name="password"> </td> </tr>
         <tr> <td> <label for="password_conf">Confirm Password: </label> </td>

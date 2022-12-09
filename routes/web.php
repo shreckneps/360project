@@ -30,11 +30,19 @@ Route::controller(Ajax::class)->group(function () {
     Route::any('/ajax/addProduct', 'addProduct');
     Route::any('/ajax/deleteProduct', 'removeListing');
 
+    Route::any('/ajax/addOffer', 'addOffer');
+    Route::any('/ajax/acceptOffer', 'acceptOffer');
+    Route::any('/ajax/acceptOffer', 'acceptOffer');
+    Route::any('/ajax/dismissOffer', 'dismissOffer');
+    Route::any('/ajax/offerOtherName', 'offerPartner');
+    Route::any('/ajax/rejectOffer', 'rejectOffer');
+
     Route::any('/ajax/detailList', 'detailList');
 
     Route::any('/ajax/attributeList', 'attributeList');
     Route::any('/ajax/atrValList', 'getAtrVals');
     Route::any('/ajax/featureList', 'featureList');
+    Route::any('/ajax/fldValList', 'getFldVals');
     Route::any('/ajax/ftrValList', 'getFtrVals');
     Route::any('/ajax/nameList', 'nameList');
     Route::any('/ajax/typeList', 'typeList');
@@ -57,6 +65,7 @@ Route::controller(Home::class)->group(function () {
     Route::any('/add', 'addProduct');
     Route::any('/dynamic', 'dynamic');
     Route::any('/listings', 'showListings');
+    Route::any('/offers', 'showOffers');
     Route::any('/exactSearch', 'exactSearchPage');
     Route::any('/rankedSearch', 'rankedSearchPage');
     Route::any('/needSearch', 'needSearchPage');
@@ -70,43 +79,3 @@ Route::controller(Datagen::class)->group(function () {
     Route::any('/datagen/home', 'genHomes');
     Route::any('/datagen/tech', 'genTech');
 });
-/*
-Route::any('/login', [Accounts::class, 'login']);
-Route::any('/register', [Accounts::class, 'register']);
-
-
-Route::any('/ajax/addProduct', [Ajax::class, 'addProduct']);
-Route::any('/ajax/addListing', [Ajax::class, 'addListing']);
-Route::any('/ajax/listExisting', [Ajax::class, 'listExisting']);
-Route::any('/ajax/deleteProduct', [Ajax::class, 'removeListing']);
-Route::any('/ajax/exactSearch', [Ajax::class, 'exactSearch']);
-Route::any('/ajax/rankedSearch', [Ajax::class, 'rankedSearch']);
-Route::any('/ajax/needSearch', [Ajax::class, 'needSearch']);
-Route::any('/ajax/serialize', [Ajax::class, 'listify']);
-Route::any('/ajax/detailList', [Ajax::class, 'detailList']);
-Route::any('/ajax/typeList', [Ajax::class, 'typeList']);
-Route::any('/ajax/nameList', [Ajax::class, 'nameList']);
-Route::any('/ajax/attributeList', [Ajax::class, 'attributeList']);
-Route::any('/ajax/featureList', [Ajax::class, 'featureList']);
-Route::any('/ajax/atrValList', [Ajax::class, 'getAtrVals']);
-Route::any('/ajax/ftrValList', [Ajax::class, 'getFtrVals']);
-Route::any('/ajax/form/{type}', [Ajax::class, 'getForm']);
-Route::any('/ajax/cmpr', [Ajax::class, 'getFormCmpr']);
-Route::any('/ajax/userProducts', [Ajax::class, 'userProducts']);
-Route::any('/ajax/addNeedmap', [Ajax::class, 'addNeedmap']);
-
-Route::any('/datagen/author', [Datagen::class, 'genAuthors']);
-
-Route::any('/', [Home::class, 'dashboard']);
-Route::any('/productlist', [Home::class, 'productlist']);
-Route::any('/add', [Home::class, 'addProduct']);
-Route::any('/dynamic', [Home::class, 'dynamic']);
-Route::any('/listings', [Home::class, 'showListings']);
-Route::any('/exactSearch', [Home::class, 'exactSearchPage']);
-Route::any('/rankedSearch', [Home::class, 'rankedSearchPage']);
-Route::any('/needSearch', [Home::class, 'needSearchPage']);
-Route::any('/testPage', [Home::class, 'testPage']);
-Route::any('/datagen', [Home::class, 'datagenPage']);
-Route::any('/addNeedmap', [Home::class, 'needmapPage']);
-
- */

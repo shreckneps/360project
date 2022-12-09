@@ -18,6 +18,7 @@
                 <td> <label for="nameInput" >Product Name:</label> </td>
                 @if ($user->type == 'vendor')
                     <td> <label for="priceInput" >Price ($):</label> </td>
+                    <td> <label for="feeInput" >Cancellation Fee ($):</label> </td>
                 @endif
             </tr>
             <tr>
@@ -27,6 +28,7 @@
                             autocomplete="off" id="nameInput" name="pname" class="form-control" placeholder="Folding Card Table"> </td>
                 @if ($user->type == 'vendor')
                     <td> <input required type="number" id="priceInput" name="sprice" min="0" step="0.01" class="form-control" placeholder="37.50"> </td>
+                    <td> <input type="number" id="feeInput" name="sfee" min="0" step="0.01" class="form-control" placeholder="3.50"> </td>
                 @endif
             </tr>
         </table>

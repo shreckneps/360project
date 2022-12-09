@@ -16,6 +16,10 @@
     </tr> </table>
 @endif
 
+@if ($user->type == 'customer' && isset($products->first()->cancellation_fee))
+    <div hidden id="offerFeedback"> </div>
+@endif
+
 <table class="table">
     <tr>
         <th scope="col">Category</th>
@@ -49,7 +53,9 @@
             <td> 
                 <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#detailModal"
                  data-name="{{ $product->name }}" data-type="{{ $product->type }}" data-key="{{ $pid }}"
-                 @if (isset($product->price)) data-price="{{ $product->price }}" @endif > View </button> 
+                 @if (isset($product->price)) data-price="{{ $product->price }}" @endif
+                 @if (isset($product->vendor_id)) data-vid="{{ $product->vendor_id }}" @endif
+                 @if (isset($product->cancellation_fee)) data-cancellation_fee="{{ $product->cancellation_fee }}" @endif > View </button> 
             </td>
             @if (isset($deletes))
                 <td><button type="button" class="btn btn-danger" value="{{ $pid }}" onclick="deleteProduct(this.value)">X</button></td>
@@ -67,6 +73,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h4 class="modal-title">Listing Detail</h4>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"> </button>
             </div>
             <div class="modal-body"> 
                 <table class="table">
@@ -77,12 +84,26 @@
                     @if (isset($products->first()->price)) <tr>
                         <td>Price:</td>
                         <td id="detailPrice">PRICE</td>
+                    </tr> @endif 
+                    @if (isset($products->first()->cancellation_fee)) <tr>
+                        <td>Cancellation Fee:</td>
+                        <td id="detailFee">FEE</td>
                     </tr> @endif </thead>
                     <tbody id="detailList">
                     </tbody>
                 </table>
             </div>
             <div class="modal-footer">
+
+                @if ($user->type == 'customer' && isset($products->first()->cancellation_fee))
+                <input type="hidden" id="productOffer">
+                <input type="hidden" id="vendorOffer">
+                <input type="hidden" id="feeOffer">
+                <input type="number" step="0.01" min="0" id="priceOffer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal"
+                        onclick="makeOffer()">Make Offer</button>
+                @endif
+
                 <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Back to List</button>
             </div>
         </div>
@@ -100,12 +121,24 @@
             modal.find("#detailPrice").text(button.data("price"));
         @endif
 
+        @if (isset($products->first()->cancellation_fee))
+            modal.find("#detailFee").text(button.data("cancellation_fee"));
+        @endif
+        
+        @if ($user->type == 'customer' && isset($products->first()->cancellation_fee))
+            modal.find("#priceOffer").val(parseFloat(button.data("price")));
+            modal.find("#productOffer").val(button.data("key"));
+            modal.find("#vendorOffer").val(button.data("vid"));
+            modal.find("#feeOffer").val(button.data("cancellation_fee"));
+
+        @endif
+
         $("#detailList").load("./ajax/detailList", "product_id=" + button.data("key"));
     
-        console.log(button.data("name"));
-        console.log(button.data("type"));
+        //console.log(button.data("name"));
+        //console.log(button.data("type"));
         @if (isset($products->first()->price))
-            console.log(button.data("price"));
+            //console.log(button.data("price"));
         @endif
     })
 
@@ -114,6 +147,16 @@
             //console.log(parseInt(id) + 1);
             $.get("./ajax/deleteProduct", "del_id=" + id);
             document.getElementById("row" + id).outerHTML = "";
+        }
+    @endif
+
+    @if ($user->type == 'customer' && isset($products->first()->cancellation_fee))
+        function makeOffer() {
+            var toSend = "offerPrice=" + $("#priceOffer").val() + "&product=" + $("#productOffer").val();
+            toSend += "&vendor=" + $("#vendorOffer").val() + "&fee=" + $("#feeOffer").val();
+            $("#offerFeedback").load("./ajax/addOffer", toSend, function(data) {
+                showAlert($("#offerFeedback").html());
+            });
         }
     @endif
 </script>

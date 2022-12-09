@@ -8,10 +8,10 @@
 
 <tr id="recursiveBottom">
     <td> <button type="button" class="btn btn-secondary" onclick="addFeature()">
-        Add Qualitative Field
+        Add Descriptive Field
     </button> </td>
     <td> <button type="button" class="btn btn-secondary" onclick="addAttribute()">
-        Add Quantitative Field
+        Add Numeric Field
     </button> </td>
 </tr>
 

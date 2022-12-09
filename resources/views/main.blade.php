@@ -4,6 +4,7 @@
     $defaultPages = array(
         url("/") => "Dashboard",
         url("/listings") => "Your Listings",
+        url("/offers") => "Your Offers",
         url("/add") => "Add Listing"
     );
     if(isset($user) && $user->type == 'customer') {

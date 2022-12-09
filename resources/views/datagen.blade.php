@@ -20,6 +20,13 @@
     </tr> </table>
 </form>
 
+<form id="techgen" onsubmit="return addTech()">
+    <table> <tr>
+        <td> <input required type="number" id="lineAmount" name="lineAmount" class="form-control"> </td>
+        <td> <button type="submit" class="btn btn-primary">Add Product Lines</button> </td>
+    </tr> </table>
+</form>
+
 <script>
 
     function addBooks() {
@@ -33,6 +40,14 @@
     function addHomes() {
         var toSend = $("#homegen").serialize();
         $("#adderFeedback").load("./datagen/home", toSend, function(data) {
+            showAlert($("#adderFeedback").html());
+        });
+        return false;
+    }
+
+    function addTech() {
+        var toSend = $("#techgen").serialize();
+        $("#adderFeedback").load("./datagen/tech", toSend, function(data) {
             showAlert($("#adderFeedback").html());
         });
         return false;

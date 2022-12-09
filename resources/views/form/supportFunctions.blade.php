@@ -80,8 +80,9 @@
 
             $("#" + id + "val").removeAttr("disabled");
             $("#" + id + "type").val(newType);
-            var toSend = "name=" + newValue + "&type=" + $("#typeInput").val();
-            $("#" + id + "list").load("./ajax/" + newType + "ValList", toSend);
+            var toSend = $("#" + id).parents("form").first().serialize() + "&numFld=" + numFields;
+            toSend += "&name=" + newValue + "&table=" + newType + "&skipNum=" + id.substring(3);
+            $("#" + id + "list").load("./ajax/fldValList", toSend);
 
             return newType;
         }
@@ -91,13 +92,15 @@
         var newType = genericFieldChangeCommon(id);
         if(newType != null) {
             var newValue = $("#" + id).val();
-            var values = $(".field").map(function() { return this.value; }).get();
+            if(newValue != "") {
+                var values = $(".field").map(function() { return this.value; }).get();
 
-            if(values.indexOf(newValue) != values.lastIndexOf(newValue)) {
-                var alertText = "Warning: " + newValue;
-                alertText += " is a duplicate feature name.";
-                alertText += " Conflicting values will result in no products matching the search.";
-                showAlert(alertText, "warning");
+                if(values.indexOf(newValue) != values.lastIndexOf(newValue)) {
+                    var alertText = "Warning: " + newValue;
+                    alertText += " is a duplicate feature name.";
+                    alertText += " Conflicting values will result in no products matching the search.";
+                    showAlert(alertText, "warning");
+                }
             }
         }
     }
@@ -162,35 +165,36 @@
 
             var toSend = "name=" + val + "&type=" + document.getElementById("typeInput").value;
             $("#" + type + 'val' + num + "list").load("./ajax/" + type + "ValList", toSend);
+
+            var values = $(".field").map(function() { return this.value; }).get();
+            if(values.indexOf(val) != values.lastIndexOf(val)) {
+                var alertText = "Warning: " + val;
+                alertText += " is a duplicate feature name.";
+                alertText += " Only one value can be added for each feature name.";
+                showAlert(alertText, "warning");
+            }
+            
+            if(val == "Price") {
+                var alertText = "Warning: Price cannot be used as a feature name.";
+                showAlert(alertText, "warning");
+            }
+            if(type == "atr" && featureListValues.indexOf(val) != -1) {
+                var alertText = "Warning: " + val;
+                alertText += " is already in use as a descriptive feature name for this product category.";
+                alertText += " It cannot be used as a numeric feature name."
+                showAlert(alertText, "warning");
+            }
+            if(type == "ftr" && attributeListValues.indexOf(val) != -1) {
+                var alertText = "Warning: " + val;
+                alertText += " is already in use as a numeric feature name for this product category.";
+                alertText += " It cannot be used as a descriptive feature name."
+                showAlert(alertText, "warning");
+            }
+
         } else {
             document.getElementById(type + "val" + num).disabled = true;
         }
 
-        var values = $(".field").map(function() { return this.value; }).get();
-
-        if(values.indexOf(val) != values.lastIndexOf(val)) {
-            var alertText = "Warning: " + val;
-            alertText += " is a duplicate feature name.";
-            alertText += " Only one value can be added for each feature name.";
-            showAlert(alertText, "warning");
-        }
-        
-        if(val == "Price") {
-            var alertText = "Warning: Price cannot be used as a feature name.";
-            showAlert(alertText, "warning");
-        }
-        if(type == "atr" && featureListValues.indexOf(val) != -1) {
-            var alertText = "Warning: " + val;
-            alertText += " is already in use as a descriptive feature name for this product category.";
-            alertText += " It cannot be used as a numeric feature name."
-            showAlert(alertText, "warning");
-        }
-        if(type == "ftr" && attributeListValues.indexOf(val) != -1) {
-            var alertText = "Warning: " + val;
-            alertText += " is already in use as a numeric feature name for this product category.";
-            alertText += " It cannot be used as a descriptive feature name."
-            showAlert(alertText, "warning");
-        }
         
 
     }
