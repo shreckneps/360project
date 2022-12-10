@@ -16,3 +16,5 @@ Remember to configure your .env to correctly refer to your database.
 All passwords in the filled table are the same as their usernames.
 Data generation and needmap creation require an account with the username admin. Data generation also requires at least one vendor account.
 
+Refer to report.pdf for a more thorough explanation of the system.
+
